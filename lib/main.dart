@@ -4,17 +4,9 @@ import 'package:flutter/rendering.dart';
 
 final duration = Duration(milliseconds: 1000);
 
-void main() => runApp(MyApp());
+final Size listItemSize = Size(180, 240);
 
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      home: MyHomePage(),
-    );
-  }
-}
+void main() => runApp(MaterialApp(home: MyHomePage()),);
 
 class MyHomePage extends StatefulWidget {
 
@@ -25,19 +17,13 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage>
     with SingleTickerProviderStateMixin {
 
-  final List<String> imageUrls = ImageUtils.imageUrls;
+  final List<String> imageUrls = List.of(ImageUtils.imageUrls);
   String selectedUrl;
   String prevUrl;
   bool isFirstLoad = true;
   final _myList = GlobalKey<AnimatedListState>();
 
   void loadNextImage () {
-    setState(() {
-      isFirstLoad = false;
-      prevUrl = selectedUrl;
-      selectedUrl = imageUrls.removeAt(0);
-      imageUrls.add(selectedUrl);
-    });
     _myList.currentState.removeItem(0, (context, animation) {
       return ListIem(
         imageUrl: selectedUrl,
@@ -45,6 +31,14 @@ class _MyHomePageState extends State<MyHomePage>
         close: true,
       );
     }, duration: duration);
+    setState(() {
+      isFirstLoad = false;
+      prevUrl = selectedUrl;
+      selectedUrl = imageUrls.removeAt(0);
+    });
+    imageUrls.add(selectedUrl);
+    _myList.currentState.insertItem(imageUrls.length -1);
+
   }
 
   @override
@@ -66,8 +60,10 @@ class _MyHomePageState extends State<MyHomePage>
         ),
         child: LayoutBuilder(
           builder: (context, c) {
-            final w = c.maxWidth;
-            final h = c.maxHeight;
+            final maxWidth = c.maxWidth;
+            final maxHeight = c.maxHeight;
+            final left = maxWidth * .45;
+            final top = maxHeight * .54;
 
             return Stack(
               children: [
@@ -75,30 +71,26 @@ class _MyHomePageState extends State<MyHomePage>
                   key: ObjectKey(selectedUrl),
                   imageUrl: selectedUrl,
                   startExpanded: isFirstLoad,
-                  initialPosition: Rect.fromLTRB(
-                    w * .45, h * .45,
-                    (w * .4) - 4, h * .2,
+                  initialPosition: Rect.fromLTWH(
+                    left, top, listItemSize.width, listItemSize.height,
                   ),
                 ),
                 Positioned(
-                  left: w * .45,
-                  top: h * .45,
+                  left: left,
+                  top: top,
                   right: 0,
-                  bottom: h * .2,
-                  child: SizedBox(
-                    height: 240,
-                    child: AnimatedList(
-                      key: _myList,
-                      initialItemCount: imageUrls.length,
-                      scrollDirection: Axis.horizontal,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemBuilder: (context, index, Animation animation) {
-                        return ListIem(
-                          imageUrl: imageUrls[index],
-                          animation: animation,
-                        );
-                      },
-                    ),
+                  height: listItemSize.height,
+                  child: AnimatedList(
+                    key: _myList,
+                    initialItemCount: imageUrls.length,
+                    scrollDirection: Axis.horizontal,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index, Animation animation) {
+                      return ListIem(
+                        imageUrl: imageUrls[index],
+                        animation: animation,
+                      );
+                    },
                   ),
                 ),
               ],
@@ -141,21 +133,26 @@ class _ExpandableItemState extends State<ExpandableItem>
       vsync: this,
       duration: duration,
     );
+  }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final mq = MediaQuery.of(context).size;
     animation = RectTween(
         begin: widget.startExpanded ? Rect.fromLTRB(0, 0, 0, 0) : widget.initialPosition,
-        end: Rect.fromLTRB(0, 0, 0, 0)
+        end: Rect.fromLTWH(0, 0, mq.width, mq.height)
     ).animate(
       CurvedAnimation(
         parent: controller,
-        curve: Cubic(0.15, 0.85, 0.30, 0.15),
+        curve: Curves.linearToEaseOut, //Cubic(0.15, 0.85, 0.30, 0.15),
       ),
     );
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       if (mounted && !widget.startExpanded)
         controller.forward();
-   });
+    });
   }
 
   @override
@@ -182,8 +179,8 @@ class _ExpandableItemState extends State<ExpandableItem>
         return Positioned(
           top: animation.value.top,
           left: animation.value.left,
-          right: animation.value.right,
-          bottom: animation.value.bottom,
+          width: animation.value.width,
+          height: animation.value.height,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(radius),
             child: widget,
@@ -207,7 +204,6 @@ class ListIem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = Size(180, 300);
     final margin = EdgeInsets.only(right: 24);
 
     if (close) {
@@ -215,15 +211,15 @@ class ListIem extends StatelessWidget {
         axis: Axis.horizontal,
         sizeFactor: animation,
         child: Container(
-          width: size.width,
-          height: size.height,
+          width: listItemSize.width,
+          height: listItemSize.height,
           margin: margin,
         ),
       );
     }
     return Container(
-      width: size.width,
-      height: size.height,
+      width: listItemSize.width,
+      height: listItemSize.height,
       margin: margin,
       decoration: BoxDecoration(
           color: Colors.grey.withOpacity(0.3),
@@ -232,7 +228,7 @@ class ListIem extends StatelessWidget {
             BoxShadow(
               blurRadius: 8,
               color: Colors.black.withOpacity(.6),
-              offset: Offset(12, 1)
+              offset: Offset(4, 1)
             ),
           ],
           image: DecorationImage(
