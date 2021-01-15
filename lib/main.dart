@@ -224,13 +224,6 @@ class ListIem extends StatelessWidget {
       decoration: BoxDecoration(
           color: Colors.grey.withOpacity(0.3),
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 8,
-              color: Colors.black.withOpacity(.6),
-              offset: Offset(4, 1)
-            ),
-          ],
           image: DecorationImage(
               image: NetworkImage(imageUrl),
               fit: BoxFit.cover
