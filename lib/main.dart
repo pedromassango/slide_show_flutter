@@ -4,7 +4,7 @@ import 'package:flutter/rendering.dart';
 
 final duration = Duration(milliseconds: 1000);
 
-final Size listItemSize = Size(180, 240);
+final Size listItemSize = Size(170, 260);
 
 void main() => runApp(MaterialApp(home: MyHomePage()),);
 
@@ -99,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage>
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.remove),
+        child: Icon(Icons.sync),
         onPressed: loadNextImage,
       ),
     );
