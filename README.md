@@ -1,6 +1,6 @@
-# challenge
+# Slide Show - Flutter
 
-A new Flutter project.
+<img src="assets/images/gif.gif">
 
 ## Getting Started
 
